@@ -1,0 +1,373 @@
+// 主题色彩
+.theme-fire {
+  --theme-primary: #{$fire-theme-color};
+  --theme-light: #{lighten($fire-theme-color, 40%)};
+  --theme-dark: #{darken($fire-theme-color, 20%)};
+}
+
+.theme-global {
+  --theme-primary: #{$global-theme-color};
+  --theme-light: #{lighten($global-theme-color, 40%)};
+  --theme-dark: #{darken($global-theme-color, 20%)};
+}
+
+.theme-inflation {
+  --theme-primary: #{$inflation-theme-color};
+  --theme-light: #{lighten($inflation-theme-color, 40%)};
+  --theme-dark: #{darken($inflation-theme-color, 20%)};
+}
+
+// 基金卡片
+.fund-card {
+  background: $bg-color;
+  border-radius: $border-radius-base;
+  box-shadow: $box-shadow-base;
+  padding: $spacing-lg;
+  transition: $transition-base;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: $box-shadow-light;
+    transform: translateY(-2px);
+  }
+
+  .fund-header {
+    @include flex-between;
+    margin-bottom: $spacing-md;
+
+    .fund-name {
+      font-size: $font-size-large;
+      font-weight: 600;
+      color: $text-color-primary;
+      margin: 0;
+    }
+
+    .fund-code {
+      background: $bg-color-page;
+      padding: $spacing-xs $spacing-sm;
+      border-radius: $border-radius-small;
+      font-size: $font-size-small;
+      color: $text-color-secondary;
+    }
+  }
+
+  .fund-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+
+    .info-item {
+      .label {
+        font-size: $font-size-small;
+        color: $text-color-secondary;
+        margin-bottom: $spacing-xs;
+      }
+
+      .value {
+        font-size: $font-size-medium;
+        font-weight: 600;
+        color: $text-color-primary;
+      }
+    }
+  }
+
+  .fund-profit {
+    @include flex-between;
+    align-items: center;
+    padding-top: $spacing-md;
+    border-top: 1px solid $border-color-lighter;
+
+    .profit-info {
+      .profit-amount {
+        font-size: $font-size-large;
+        font-weight: 600;
+        margin-bottom: $spacing-xs;
+
+        &.positive {
+          color: $success-color;
+        }
+
+        &.negative {
+          color: $danger-color;
+        }
+      }
+
+      .profit-rate {
+        font-size: $font-size-small;
+        color: $text-color-secondary;
+      }
+    }
+  }
+
+  .fund-actions {
+    display: flex;
+    gap: $spacing-sm;
+
+    .btn-action {
+      padding: $spacing-xs $spacing-sm;
+      border-radius: $border-radius-small;
+      font-size: $font-size-small;
+      transition: $transition-base;
+
+      &:hover {
+        background: $bg-color-page;
+      }
+    }
+  }
+}
+
+// 统计卡片
+.stat-card {
+  background: $bg-color;
+  border-radius: $border-radius-base;
+  box-shadow: $box-shadow-base;
+  padding: $spacing-lg;
+  position: relative;
+  overflow: hidden;
+
+  .stat-icon {
+    position: absolute;
+    top: $spacing-md;
+    right: $spacing-md;
+    font-size: 48px;
+    opacity: 0.1;
+    color: var(--theme-primary, $primary-color);
+  }
+
+  .stat-content {
+    position: relative;
+    z-index: 1;
+
+    .stat-label {
+      font-size: $font-size-small;
+      color: $text-color-secondary;
+      margin-bottom: $spacing-xs;
+    }
+
+      .stat-value {
+      font-size: $font-size-extra-large;
+      font-weight: bold;
+      color: $text-color-primary;
+      margin-bottom: $spacing-xs;
+      }
+
+      .stat-change {
+      font-size: $font-size-small;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+
+        &.positive {
+        color: $success-color;
+        }
+
+        &.negative {
+        color: $danger-color;
+        }
+      }
+    }
+  }
+
+  // 主题切换器
+.theme-switcher {
+    display: flex;
+    background: $bg-color;
+    border-radius: $border-radius-round;
+    padding: $spacing-xs;
+    box-shadow: $box-shadow-base;
+
+    .theme-option {
+      padding: $spacing-sm $spacing-md;
+      border-radius: $border-radius-round;
+      cursor: pointer;
+      transition: $transition-base;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+
+      .theme-icon {
+        font-size: 16px;
+      }
+
+      .theme-name {
+        font-size: $font-size-small;
+        color: $text-color-regular;
+      }
+
+      &.active {
+        background: var(--theme-primary, $primary-color);
+        color: white;
+
+        .theme-name {
+          color: white;
+        }
+      }
+
+      &:hover:not(.active) {
+        background: $bg-color-page;
+      }
+    }
+  }
+
+  // AI聊天界面
+.ai-chat {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: $spacing-lg;
+      background: $bg-color-page;
+
+      .message {
+        margin-bottom: $spacing-lg;
+        display: flex;
+
+        &.user {
+          justify-content: flex-end;
+
+          .message-content {
+            background: $primary-color;
+            color: white;
+            border-radius: $border-radius-base $border-radius-base $border-radius-base 0;
+          }
+        }
+
+        &.ai {
+          justify-content: flex-start;
+
+          .message-content {
+            background: $bg-color;
+            border-radius: $border-radius-base $border-radius-base 0 $border-radius-base;
+          }
+        }
+
+        .message-content {
+          max-width: 70%;
+          padding: $spacing-md;
+          box-shadow: $box-shadow-base;
+          position: relative;
+
+          .message-time {
+            font-size: $font-size-extra-small;
+            opacity: 0.7;
+            margin-top: $spacing-xs;
+          }
+
+          .typing-indicator {
+            display: flex;
+            gap: $spacing-xs;
+
+            span {
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+              background: currentColor;
+              animation: typing 1.4s infinite ease-in-out;
+
+              &:nth-child(1) { animation-delay: -0.32s; }
+              &:nth-child(2) { animation-delay: -0.16s; }
+            }
+          }
+        }
+      }
+    }
+
+    .chat-input {
+      background: $bg-color;
+      border-top: 1px solid $border-color-lighter;
+      padding: $spacing-md;
+
+      .input-container {
+        @include flex-center;
+        gap: $spacing-md;
+
+        .el-input {
+          flex: 1;
+        }
+      }
+    }
+  }
+
+  @keyframes typing {
+    0%, 80%, 100% {
+      transform: scale(0);
+      opacity: 0.5;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  // OCR扫描器
+.ocr-scanner {
+  .upload-area {
+    border: 2px dashed $border-color;
+    border-radius: $border-radius-base;
+    padding: $spacing-xl * 2;
+    text-align: center;
+    transition: $transition-base;
+    cursor: pointer;
+
+    &:hover,
+    &.dragover {
+      border-color: $primary-color;
+      background: rgba($primary-color, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      color: $text-color-placeholder;
+      margin-bottom: $spacing-md;
+    }
+
+    .upload-text {
+      color: $text-color-regular;
+      margin-bottom: $spacing-sm;
+    }
+
+    .upload-hint {
+      font-size: $font-size-small;
+      color: $text-color-secondary;
+    }
+  }
+
+  .ocr-result {
+    margin-top: $spacing-lg;
+    padding: $spacing-lg;
+    background: $bg-color-page;
+    border-radius: $border-radius-base;
+
+    .result-header {
+      @include flex-between;
+      margin-bottom: $spacing-md;
+
+      .fund-code {
+        font-size: $font-size-large;
+        font-weight: bold;
+        color: var(--theme-primary, $primary-color);
+      }
+
+      .confidence {
+        font-size: $font-size-small;
+        color: $text-color-secondary;
+
+        &.high { color: $success-color; }
+        &.medium { color: $warning-color; }
+        &.low { color: $danger-color; }
+      }
+    }
+
+    .fund-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: $spacing-md;
+    }
+  }
+}

@@ -1,0 +1,155 @@
+# 依赖目录
+node_modules/
+*/node_modules/
+
+# 构建输出
+dist/
+build/
+*/dist/
+*/build/
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 运行时数据
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 覆盖率目录
+coverage/
+*.lcov
+
+# nyc测试覆盖率
+.nyc_output
+
+# IDE和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+database/
+backend/database/
+
+# 上传文件
+uploads/
+backend/uploads/
+
+# 临时文件
+tmp/
+temp/
+.tmp/
+
+# 缓存
+.cache/
+.parcel-cache/
+
+# ESLint缓存
+.eslintcache
+
+# TypeScript
+*.tsbuildinfo
+
+# 可选的npm缓存目录
+.npm
+
+# 可选的eslint缓存
+.eslintcache
+
+# 可选的REPL历史
+.node_repl_history
+
+# 输出的二进制文件
+*.tgz
+*.tar.gz
+
+# Yarn完整性文件
+.yarn-integrity
+
+# dotenv环境变量文件
+.env.test
+
+# parcel-bundler缓存
+.cache
+.parcel-cache
+
+# next.js构建输出
+.next
+
+# nuxt.js构建输出
+.nuxt
+
+# vuepress构建输出
+.vuepress/dist
+
+# Serverless目录
+.serverless/
+
+# FuseBox缓存
+.fusebox/
+
+# DynamoDB本地文件
+.dynamodb/
+
+# TernJS端口文件
+.tern-port
+
+# Docker
+.dockerignore
+
+# 备份文件
+backups/
+*.backup
+
+# SSL证书
+*.pem
+*.key
+*.crt
+nginx/ssl/
+
+# 测试文件
+test-results/
+playwright-report/
+test-results.xml
+
+# 其他
+*.tgz
+*.tar.gz
+*.rar
+*.zip
+*.7z
+
+# 云函数相关
+.scf/
+.fc/
+
+# 本地配置文件
+config/local.json
+config/local.js

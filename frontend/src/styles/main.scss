@@ -1,0 +1,251 @@
+@import './variables.scss';
+@import './mixins.scss';
+@import './layout.scss';
+@import './components.scss';
+@import './utilities.scss';
+
+// 全局重置
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: $font-size-base;
+  color: $text-color-primary;
+  background-color: $bg-color-page;
+  overflow-x: hidden;
+}
+
+// 链接样式
+a {
+  color: $primary-color;
+  text-decoration: none;
+  transition: $transition-base;
+
+  &:hover {
+    color: lighten($primary-color, 10%);
+  }
+}
+
+// 按钮重置
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  outline: none;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+// 输入框重置
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+}
+
+// 响应式工具类
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+
+  @media (min-width: $breakpoint-sm) {
+    padding: 0 $spacing-lg;
+  }
+
+  @media (min-width: $breakpoint-lg) {
+    padding: 0 $spacing-xl;
+  }
+}
+
+// 卡片样式
+.card {
+  background: $bg-color;
+  border-radius: $border-radius-base;
+  box-shadow: $box-shadow-base;
+  padding: $spacing-lg;
+  transition: $transition-base;
+
+  &:hover {
+    box-shadow: $box-shadow-light;
+  }
+}
+
+// 页面标题
+.page-header {
+  margin-bottom: $spacing-xl;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $border-color-lighter;
+
+  .title {
+    font-size: $font-size-extra-large;
+    font-weight: 600;
+    color: $text-color-primary;
+    margin: 0 0 $spacing-sm 0;
+  }
+
+  .description {
+    color: $text-color-secondary;
+    margin: 0;
+  }
+}
+
+// 加载状态
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: $text-color-secondary;
+}
+
+// 空状态
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: $text-color-secondary;
+  text-align: center;
+
+  .icon {
+    font-size: 64px;
+    margin-bottom: $spacing-md;
+    opacity: 0.5;
+  }
+
+  .title {
+    font-size: $font-size-large;
+    margin-bottom: $spacing-sm;
+  }
+
+  .description {
+    color: $text-color-secondary;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+// 工具提示
+.tooltip {
+  position: relative;
+  display: inline-block;
+
+  .tooltip-content {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-base;
+    font-size: $font-size-extra-small;
+    white-space: nowrap;
+    z-index: $zindex-tooltip;
+    opacity: 0;
+    visibility: hidden;
+    transition: $transition-fade;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.8);
+    }
+  }
+
+  &:hover .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// 隐藏滚动条
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// 文字截断
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-ellipsis-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// 动画类
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
+}
+
+// 打印样式
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+}

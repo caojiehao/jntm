@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # JNTM应用服务
+  jntm-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jntm-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_PATH=./database/jntm.db
+      - DB_TYPE=sqlite
+      - JWT_SECRET=${JWT_SECRET:-your-production-jwt-secret}
+      - JWT_EXPIRES_IN=7d
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
+      - FUND_API_KEY=${FUND_API_KEY}
+      - LOG_LEVEL=info
+    volumes:
+      - jntm_uploads:/app/uploads
+      - jntm_database:/app/database
+      - jntm_logs:/app/logs
+    networks:
+      - jntm-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis缓存服务（可选）
+  redis:
+    image: redis:7-alpine
+    container_name: jntm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-jntm-redis-password}
+    volumes:
+      - redis_data:/data
+    networks:
+      - jntm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx反向代理（可选）
+  nginx:
+    image: nginx:alpine
+    container_name: jntm-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - jntm_uploads:/var/www/uploads:ro
+    depends_on:
+      - jntm-app
+    networks:
+      - jntm-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# 数据卷
+volumes:
+  jntm_uploads:
+    driver: local
+  jntm_database:
+    driver: local
+  jntm_logs:
+    driver: local
+  redis_data:
+    driver: local
+
+# 网络
+networks:
+  jntm-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

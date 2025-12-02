@@ -1,0 +1,47 @@
+{
+  "name": "jntm",
+  "version": "1.0.0",
+  "description": "基你太美 - 智能基金管家",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "start": "cd backend && npm start",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "setup": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "clean": "rm -rf node_modules frontend/node_modules backend/node_modules frontend/dist backend/dist",
+    "deploy": "npm run build && npm run deploy:backend",
+    "deploy:backend": "cd backend && npm run deploy"
+  },
+  "keywords": [
+    "fund",
+    "investment",
+    "ocr",
+    "ai",
+    "vue",
+    "nodejs",
+    "financial-tools"
+  ],
+  "author": "JNTM Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

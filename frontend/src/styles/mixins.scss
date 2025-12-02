@@ -1,0 +1,231 @@
+// 响应式断点混入
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == xs {
+    @media (max-width: $breakpoint-xs) { @content; }
+  }
+  @if $breakpoint == sm {
+    @media (max-width: $breakpoint-sm) { @content; }
+  }
+  @if $breakpoint == md {
+    @media (max-width: $breakpoint-md) { @content; }
+  }
+  @if $breakpoint == lg {
+    @media (max-width: $breakpoint-lg) { @content; }
+  }
+  @if $breakpoint == xl {
+    @media (max-width: $breakpoint-xl) { @content; }
+  }
+}
+
+// 最小宽度响应
+@mixin min-width($breakpoint) {
+  @if $breakpoint == sm {
+    @media (min-width: $breakpoint-sm) { @content; }
+  }
+  @if $breakpoint == md {
+    @media (min-width: $breakpoint-md) { @content; }
+  }
+  @if $breakpoint == lg {
+    @media (min-width: $breakpoint-lg) { @content; }
+  }
+  @if $breakpoint == xl {
+    @media (min-width: $breakpoint-xl) { @content; }
+  }
+  @if $breakpoint == xxl {
+    @media (min-width: $breakpoint-xxl) { @content; }
+  }
+}
+
+// Flexbox 混入
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@mixin flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+// 清除浮动
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// 文字截断
+@mixin text-truncate($lines: 1) {
+  @if $lines == 1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+// 按钮样式混入
+@mixin button-variant($bg-color, $text-color: white, $border-color: $bg-color) {
+  background-color: $bg-color;
+  color: $text-color;
+  border-color: $border-color;
+
+  &:hover,
+  &:focus {
+    background-color: lighten($bg-color, 10%);
+    border-color: lighten($border-color, 10%);
+  }
+
+  &:active {
+    background-color: darken($bg-color, 10%);
+    border-color: darken($border-color, 10%);
+  }
+}
+
+// 卡片阴影混入
+@mixin card-shadow($level: 'base') {
+  @if $level == 'base' {
+    box-shadow: $box-shadow-base;
+  } @else if $level == 'light' {
+    box-shadow: $box-shadow-light;
+  } @else if $level == 'dark' {
+    box-shadow: $box-shadow-dark;
+  }
+}
+
+// 渐变背景混入
+@mixin gradient-bg($start-color, $end-color, $direction: to right) {
+  background: linear-gradient($direction, $start-color, $end-color);
+}
+
+// 占位符样式
+@mixin placeholder($color: $text-color-placeholder) {
+  &::placeholder {
+    color: $color;
+    opacity: 1;
+  }
+
+  &::-webkit-input-placeholder {
+    color: $color;
+  }
+
+  &::-moz-placeholder {
+    color: $color;
+    opacity: 1;
+  }
+
+  &:-ms-input-placeholder {
+    color: $color;
+  }
+}
+
+// 滚动条样式
+@mixin custom-scrollbar($width: 8px, $track-color: #f1f1f1, $thumb-color: #c1c1c1) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+    border-radius: $width / 2;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: $width / 2;
+
+    &:hover {
+      background: darken($thumb-color, 10%);
+    }
+  }
+}
+
+// 绝对定位居中
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// 固定宽高比
+@mixin aspect-ratio($width, $height) {
+  position: relative;
+
+  &::before {
+    content: '';
+    display: block;
+    padding-top: ($height / $width) * 100%;
+  }
+
+  > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// 隐藏文本但保持可访问性
+@mixin visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// 三角形
+@mixin triangle($size, $color, $direction: 'up') {
+  width: 0;
+  height: 0;
+  border: $size solid transparent;
+
+  @if $direction == 'up' {
+    border-bottom-color: $color;
+  } @else if $direction == 'down' {
+    border-top-color: $color;
+  } @else if $direction == 'left' {
+    border-right-color: $color;
+  } @else if $direction == 'right' {
+    border-left-color: $color;
+  }
+}
