@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Python AI服务
+  python-service:
+    build:
+      context: ./python-service
+      dockerfile: Dockerfile
+    container_name: jntm-python-service
+    restart: unless-stopped
+    ports:
+      - "5081:5081"
+    environment:
+      - DEBUG=false
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - JAVA_SERVICE_BASE_URL=http://localhost:5080/api/v1
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - host
+
+networks:
+  host:
+    driver: bridge

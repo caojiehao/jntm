@@ -1,24 +1,6 @@
 version: '3.8'
 
 services:
-  # MySQL数据库服务（使用现有容器）
-  mysql:
-    image: mysql:8.0
-    container_name: fx-qms-mysql
-    external_links:
-      - fx-qms-mysql:mysql
-    networks:
-      - jntm-network
-
-  # Redis缓存服务（使用现有容器）
-  redis:
-    image: redis:6-alpine
-    container_name: fx-qms-redis
-    external_links:
-      - fx-qms-redis:redis
-    networks:
-      - jntm-network
-
   # Java主服务
   java-backend:
     build:
@@ -30,12 +12,12 @@ services:
       - "5080:5080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - MYSQL_HOST=mysql
+      - MYSQL_HOST=host.docker.internal
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=jntm
       - MYSQL_USER=jntm_user
       - MYSQL_PASSWORD=123456
-      - REDIS_HOST=redis
+      - REDIS_HOST=host.docker.internal
       - REDIS_PORT=6379
       - PYTHON_AI_SERVICE_URL=http://python-service:5081
       - JWT_SECRET=JNTM-Super-Secret-Key-For-JWT-Token-Generation
@@ -46,11 +28,9 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - jntm-network
     healthcheck:
@@ -64,14 +44,14 @@ services:
   python-service:
     build:
       context: ./python-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: jntm-python-service
     restart: unless-stopped
     ports:
       - "5081:5081"
     environment:
       - DEBUG=false
-      - REDIS_HOST=redis
+      - REDIS_HOST=host.docker.internal
       - REDIS_PORT=6379
       - JAVA_SERVICE_BASE_URL=http://java-backend:5080/api/v1
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
@@ -79,11 +59,11 @@ services:
       - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
       - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
     volumes:
+      - ./python-service:/app
       - ./uploads:/app/uploads
       - ./logs:/app/logs
-    depends_on:
-      - java-backend
-      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - jntm-network
     healthcheck:
@@ -93,36 +73,36 @@ services:
       retries: 3
       start_period: 40s
 
-  # Nginx反向代理（可选）
-  nginx:
-    image: nginx:alpine
-    container_name: jntm-nginx
+  # Frontend开发服务
+  frontend:
+    image: node:18-alpine
+    container_name: jntm-frontend
     restart: unless-stopped
+    working_dir: /app
     ports:
-      - "80:80"
-      - "443:443"
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:5081/api/v1
+      - VITE_DEV_MOCK_DATA=true
+      - VITE_DEV_SHOW_DEBUG=true
+      - VITE_APP_TITLE=基你太美 - 智能基金管家
+      - VITE_ENABLE_AI=true
+      - VITE_ENABLE_OCR=true
+      - VITE_ENABLE_THEMES=true
+      - VITE_DEFAULT_THEME=fire
+      - VITE_AVAILABLE_THEMES=fire,global,inflation
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - ./uploads:/var/www/uploads:ro
-      - ./frontend/dist:/usr/share/nginx/html:ro
-    depends_on:
-      - java-backend
-      - python-service
+      - ./frontend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     networks:
       - jntm-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-# 数据卷
-volumes:
-  mysql_data:
-    driver: local
-  redis_data:
-    driver: local
+      start_period: 30s
 
 # 网络
 networks:
@@ -130,4 +110,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.21.0.0/16

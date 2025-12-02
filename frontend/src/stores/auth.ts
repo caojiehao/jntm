@@ -151,6 +151,22 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // 设置用户信息
+  const setUser = (userData: User) => {
+    user.value = userData
+    token.value = userData.token || 'mock-token'
+
+    // 保存到本地存储
+    localStorage.setItem('jntm_user', JSON.stringify(userData))
+    localStorage.setItem('jntm_token', token.value)
+  }
+
+  // 设置Token
+  const setToken = (newToken: string) => {
+    token.value = newToken
+    localStorage.setItem('jntm_token', newToken)
+  }
+
   // 更新用户信息
   const updateUser = (userData: Partial<User>) => {
     if (user.value) {
@@ -187,6 +203,8 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuth,
     refreshToken,
     updateUser,
+    setUser,
+    setToken,
     verifyToken,
     checkAuthStatus,
     getAuthHeader

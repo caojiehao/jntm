@@ -20,7 +20,21 @@
     "setup": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "clean": "rm -rf node_modules frontend/node_modules backend/node_modules frontend/dist backend/dist",
     "deploy": "npm run build && npm run deploy:backend",
-    "deploy:backend": "cd backend && npm run deploy"
+    "deploy:backend": "cd backend && npm run deploy",
+    "docker:start": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:backend": "docker-compose -f docker-compose.dev.yml up java-backend python-service -d",
+    "docker:stop": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down",
+    "docker:restart": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml restart",
+    "docker:clean": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v --remove-orphans",
+    "docker:build": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache",
+    "docker:build:java": "docker-compose -f docker-compose.yml build java-backend",
+    "docker:build:python": "docker-compose -f docker-compose.dev.yml build python-service",
+    "docker:status": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml ps",
+    "docker:logs": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f",
+    "docker:logs:java": "docker-compose -f docker-compose.yml logs -f java-backend",
+    "docker:logs:python": "docker-compose -f docker-compose.dev.yml logs -f python-service",
+    "docker:logs:frontend": "docker-compose -f docker-compose.dev.yml logs -f frontend"
   },
   "keywords": [
     "fund",
