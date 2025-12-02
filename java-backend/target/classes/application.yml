@@ -115,6 +115,27 @@ management:
       prometheus:
         enabled: true
 
+# SpringDoc OpenAPI 3 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    operations-sorter: method
+    disable-swagger-default-url: true
+    display-request-duration: true
+  group-configs:
+    enabled: true
+    display-groups: always
+  show-actuator: true
+  default-produces-media-type: application/json
+  writer-with-default-pretty-printer: true
+  paths-to-match:
+    - /api/v1/**
+
 # 应用自定义配置
 jntm:
   # JWT配置

@@ -1,5 +1,6 @@
 package com.jntm.config;
 
+import com.jntm.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,6 +44,15 @@ public class SecurityConfig {
     }
 
     /**
+     * 认证管理器配置
+     */
+    @Bean
+    public org.springframework.security.authentication.AuthenticationManager authenticationManager(
+            org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    /**
      * 安全过滤器链配置
      */
     @Bean
@@ -63,13 +73,18 @@ public class SecurityConfig {
                         // 公开访问的端点
                         .requestMatchers(
                                 "/api/v1/auth/**",
-                                "/api/v1/actuator/health",
-                                "/api/v1/themes/health/**",
+                                "/api/v1/actuator/**",
                                 "/error",
                                 "/swagger-ui/**",
+                                "/swagger-ui/**/**",
                                 "/v3/api-docs/**",
+                                "/v3/api-docs/swagger-config",
+                                "/v3/api-docs/**/security-requirements",
+                                "/v3/api-docs/**/security-schemes",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/api-docs/**",
+                                "/swagger-ui.html"
                         ).permitAll()
 
                         // 管理员端点
@@ -124,20 +139,4 @@ public class SecurityConfig {
         return source;
     }
 
-}
-
-/**
- * JWT认证过滤器（占位符，需要实际实现）
- */
-class JwtAuthenticationFilter extends org.springframework.web.filter.OncePerRequestFilter {
-
-    @Override
-    protected void doFilterInternal(
-            jakarta.servlet.http.HttpServletRequest request,
-            jakarta.servlet.http.HttpServletResponse response,
-            org.springframework.security.core.FilterChain filterChain
-    ) throws jakarta.servlet.ServletException, java.io.IOException {
-        // TODO: 实现JWT认证逻辑
-        filterChain.doFilter(request, response);
-    }
 }

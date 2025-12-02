@@ -147,8 +147,24 @@ const handleLogin = async () => {
           const data = await response.json()
 
           if (data.success) {
-            authStore.setUser(data.user)
-            authStore.setToken(data.token)
+            // 使用API返回的用户信息和Token
+            const userData = data.data
+            authStore.setUser({
+              id: userData.id,
+              username: userData.username,
+              email: userData.email,
+              nickname: userData.nickname,
+              phone: userData.phone,
+              avatar: userData.avatar,
+              currentTheme: userData.currentTheme,
+              investmentGoal: userData.investmentGoal,
+              riskTolerance: userData.riskTolerance,
+              isActive: userData.isActive,
+              token: userData.accessToken,
+              createdAt: userData.createdAt,
+              lastLoginAt: userData.lastLoginAt
+            })
+            authStore.setToken(userData.accessToken)
 
             ElMessage.success('登录成功！')
 
@@ -158,31 +174,9 @@ const handleLogin = async () => {
             ElMessage.error(data.message || '登录失败')
           }
         } else {
-          ElMessage.error('登录失败，请检查网络连接')
+          const errorData = await response.json()
+          ElMessage.error(errorData.message || '登录失败')
         }
-      } catch (apiError) {
-        console.error('API登录错误:', apiError)
-
-        // 如果API调用失败，fallback到模拟登录
-        console.log('API调用失败，使用模拟登录')
-
-        await new Promise(resolve => setTimeout(resolve, 500))
-
-        const mockUser = {
-          id: 1,
-          username: loginData.username,
-          email: `${loginData.username}@jntm.com`,
-          nickname: loginData.username,
-          currentTheme: 'fire' as any,
-          token: 'mock-jwt-token'
-        }
-
-        authStore.setUser(mockUser)
-
-        ElMessage.success('登录成功！（模拟模式）')
-
-        const redirect = router.currentRoute.value.query.redirect as string
-        router.push(redirect || '/dashboard')
       }
     }
 

@@ -131,17 +131,58 @@ const handleRegister = async () => {
     await registerForm.value.validate()
     loading.value = true
 
-    // 模拟注册请求
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    // 调用真实API进行注册
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: registerData.username,
+        email: registerData.email,
+        password: registerData.password,
+        nickname: registerData.nickname,
+        phone: registerData.phone
+      })
+    })
 
-    ElMessage.success('注册成功！请登录')
+    if (response.ok) {
+      const data = await response.json()
 
-    // 重定向到登录页
-    router.push('/login')
+      if (data.success) {
+        ElMessage.success('注册成功！正在为您登录...')
 
+        // 自动登录
+        const userData = data.data
+        authStore.setUser({
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          nickname: userData.nickname,
+          phone: userData.phone,
+          avatar: userData.avatar,
+          currentTheme: userData.currentTheme,
+          investmentGoal: userData.investmentGoal,
+          riskTolerance: userData.riskTolerance,
+          isActive: userData.isActive,
+          token: userData.accessToken,
+          createdAt: userData.createdAt,
+          lastLoginAt: userData.lastLoginAt
+        })
+        authStore.setToken(userData.accessToken)
+
+        // 重定向到仪表板
+        router.push('/dashboard')
+      } else {
+        ElMessage.error(data.message || '注册失败')
+      }
+    } else {
+      const errorData = await response.json()
+      ElMessage.error(errorData.message || '注册失败')
+    }
   } catch (error) {
     console.error('注册失败:', error)
-    ElMessage.error('注册失败，请检查输入信息')
+    ElMessage.error('网络连接失败，请检查网络后重试')
   } finally {
     loading.value = false
   }

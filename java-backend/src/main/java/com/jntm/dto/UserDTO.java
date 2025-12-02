@@ -41,6 +41,17 @@ public class UserDTO {
     private String email;
 
     /**
+     * 密码（仅用于注册和更新）
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String password;
+
+    /**
+     * 手机号
+     */
+    private String phone;
+
+    /**
      * 昵称
      */
     private String nickname;
@@ -76,6 +87,11 @@ public class UserDTO {
     private Integer investmentHorizon;
 
     /**
+     * 用户角色
+     */
+    private String role;
+
+    /**
      * 账户状态
      */
     private User.UserStatus status;
@@ -108,6 +124,67 @@ public class UserDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
+    // 构造函数
+    public UserDTO() {}
+
+    // Getter和Setter方法
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getNickname() { return nickname; }
+    public void setNickname(String nickname) { this.nickname = nickname; }
+
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public User.ThemeType getCurrentTheme() { return currentTheme; }
+    public void setCurrentTheme(User.ThemeType currentTheme) { this.currentTheme = currentTheme; }
+
+    public BigDecimal getInvestmentGoal() { return investmentGoal; }
+    public void setInvestmentGoal(BigDecimal investmentGoal) { this.investmentGoal = investmentGoal; }
+
+    public User.RiskTolerance getRiskTolerance() { return riskTolerance; }
+    public void setRiskTolerance(User.RiskTolerance riskTolerance) { this.riskTolerance = riskTolerance; }
+
+    public BigDecimal getExpectedReturnRate() { return expectedReturnRate; }
+    public void setExpectedReturnRate(BigDecimal expectedReturnRate) { this.expectedReturnRate = expectedReturnRate; }
+
+    public Integer getInvestmentHorizon() { return investmentHorizon; }
+    public void setInvestmentHorizon(Integer investmentHorizon) { this.investmentHorizon = investmentHorizon; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+    public User.UserStatus getStatus() { return status; }
+    public void setStatus(User.UserStatus status) { this.status = status; }
+
+    public Boolean getEmailNotificationEnabled() { return emailNotificationEnabled; }
+    public void setEmailNotificationEnabled(Boolean emailNotificationEnabled) { this.emailNotificationEnabled = emailNotificationEnabled; }
+
+    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+
+    public String getLastLoginIp() { return lastLoginIp; }
+    public void setLastLoginIp(String lastLoginIp) { this.lastLoginIp = lastLoginIp; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
     /**
      * 从User实体转换为DTO
      */
@@ -116,24 +193,26 @@ public class UserDTO {
             return null;
         }
 
-        return UserDTO.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .avatarUrl(user.getAvatarUrl())
-                .currentTheme(user.getCurrentTheme())
-                .investmentGoal(user.getInvestmentGoal())
-                .riskTolerance(user.getRiskTolerance())
-                .expectedReturnRate(user.getExpectedReturnRate())
-                .investmentHorizon(user.getInvestmentHorizon())
-                .status(user.getStatus())
-                .emailNotificationEnabled(user.getEmailNotificationEnabled())
-                .lastLoginAt(user.getLastLoginAt())
-                .lastLoginIp(user.getLastLoginIp())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .build();
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setNickname(user.getNickname());
+        dto.setAvatarUrl(user.getAvatarUrl());
+        dto.setCurrentTheme(user.getCurrentTheme());
+        dto.setInvestmentGoal(user.getInvestmentGoal());
+        dto.setRiskTolerance(user.getRiskTolerance());
+        dto.setExpectedReturnRate(user.getExpectedReturnRate());
+        dto.setInvestmentHorizon(user.getInvestmentHorizon());
+        dto.setRole(user.getRole());
+        dto.setStatus(user.getStatus());
+        dto.setEmailNotificationEnabled(user.getEmailNotificationEnabled());
+        dto.setLastLoginAt(user.getLastLoginAt());
+        dto.setLastLoginIp(user.getLastLoginIp());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setUpdatedAt(user.getUpdatedAt());
+        return dto;
     }
 
 }

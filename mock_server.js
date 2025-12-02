@@ -3,7 +3,85 @@
 const http = require('http');
 const url = require('url');
 
-// 模拟数据
+// 模拟用户数据
+const MOCK_USERS = [
+    {
+        id: 1,
+        username: "testuser",
+        email: "test@example.com",
+        password: "password123", // 实际应用中应该是加密的
+        nickname: "测试用户",
+        phone: "13800138000",
+        avatar: "",
+        currentTheme: "fire",
+        investmentGoal: null,
+        riskTolerance: 3,
+        role: "USER",
+        isActive: true,
+        createdAt: "2024-01-01T00:00:00",
+        lastLoginAt: "2024-01-01T12:00:00"
+    }
+];
+
+// 模拟Token存储（实际应用中应该使用Redis或JWT）
+const MOCK_TOKENS = new Map();
+
+// 简单的JWT Token生成（仅用于Mock）
+function generateMockToken(userId, username) {
+    const header = { alg: 'HS256', typ: 'JWT' };
+    const payload = {
+        sub: userId.toString(),
+        username: username,
+        type: 'access',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7天过期
+    };
+
+    // 简单的Base64编码（仅用于Mock，实际应用需要JWT库）
+    const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
+    const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const signature = 'mock-signature'; // Mock签名
+
+    return `${encodedHeader}.${encodedPayload}.${signature}`;
+}
+
+function generateRefreshToken(userId, username) {
+    const header = { alg: 'HS256', typ: 'JWT' };
+    const payload = {
+        sub: userId.toString(),
+        username: username,
+        type: 'refresh',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30天过期
+    };
+
+    const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
+    const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const signature = 'mock-signature';
+
+    return `${encodedHeader}.${encodedPayload}.${signature}`;
+}
+
+// 验证Mock Token
+function validateMockToken(token) {
+    try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+
+        // 检查过期时间
+        if (payload.exp < Math.floor(Date.now() / 1000)) {
+            return null;
+        }
+
+        return payload;
+    } catch (error) {
+        return null;
+    }
+}
+
+// 模拟基金数据
 const MOCK_FUNDS = [
     {
         id: "1",
@@ -89,7 +167,319 @@ const handleRoute = (req, res) => {
         return;
     }
 
-    // 路由处理
+    // 认证相关路由
+    if (path === '/api/v1/auth/login' && method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk.toString());
+        req.on('end', () => {
+            try {
+                const { username, password } = JSON.parse(body);
+
+                // 查找用户
+                const user = MOCK_USERS.find(u => u.username === username && u.password === password);
+
+                if (user) {
+                    // 更新最后登录时间
+                    user.lastLoginAt = new Date().toISOString();
+
+                    // 生成Token
+                    const accessToken = generateMockToken(user.id, user.username);
+                    const refreshToken = generateRefreshToken(user.id, user.username);
+                    const expiresIn = 7 * 24 * 60 * 60 * 1000; // 7天
+
+                    // 存储Token用于验证
+                    MOCK_TOKENS.set(accessToken, { userId: user.id, username: user.username });
+                    MOCK_TOKENS.set(refreshToken, { userId: user.id, username: user.username, type: 'refresh' });
+
+                    sendJson(res, {
+                        success: true,
+                        message: "登录成功",
+                        data: {
+                            id: user.id,
+                            username: user.username,
+                            email: user.email,
+                            nickname: user.nickname,
+                            phone: user.phone,
+                            avatar: user.avatar,
+                            currentTheme: user.currentTheme,
+                            investmentGoal: user.investmentGoal,
+                            riskTolerance: user.riskTolerance,
+                            isActive: user.isActive,
+                            accessToken: accessToken,
+                            refreshToken: refreshToken,
+                            tokenType: "Bearer",
+                            expiresIn: expiresIn,
+                            createdAt: user.createdAt,
+                            lastLoginAt: user.lastLoginAt
+                        }
+                    });
+                } else {
+                    sendJson(res, {
+                        success: false,
+                        message: "用户名或密码错误"
+                    }, 401);
+                }
+            } catch (error) {
+                sendJson(res, {
+                    success: false,
+                    message: "请求数据格式错误"
+                }, 400);
+            }
+        });
+        return;
+    }
+
+    if (path === '/api/v1/auth/register' && method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk.toString());
+        req.on('end', () => {
+            try {
+                const { username, email, password, nickname, phone } = JSON.parse(body);
+
+                // 检查用户名是否已存在
+                if (MOCK_USERS.find(u => u.username === username)) {
+                    sendJson(res, {
+                        success: false,
+                        message: "用户名已存在"
+                    }, 400);
+                    return;
+                }
+
+                // 检查邮箱是否已存在
+                if (MOCK_USERS.find(u => u.email === email)) {
+                    sendJson(res, {
+                        success: false,
+                        message: "邮箱已被使用"
+                    }, 400);
+                    return;
+                }
+
+                // 创建新用户
+                const newUser = {
+                    id: MOCK_USERS.length + 1,
+                    username: username,
+                    email: email,
+                    password: password, // 实际应用中应该加密
+                    nickname: nickname || username,
+                    phone: phone || null,
+                    avatar: "",
+                    currentTheme: "fire",
+                    investmentGoal: null,
+                    riskTolerance: 3,
+                    role: "USER",
+                    isActive: true,
+                    createdAt: new Date().toISOString(),
+                    lastLoginAt: new Date().toISOString()
+                };
+
+                MOCK_USERS.push(newUser);
+
+                // 生成Token
+                const accessToken = generateMockToken(newUser.id, newUser.username);
+                const refreshToken = generateRefreshToken(newUser.id, newUser.username);
+                const expiresIn = 7 * 24 * 60 * 60 * 1000; // 7天
+
+                // 存储Token
+                MOCK_TOKENS.set(accessToken, { userId: newUser.id, username: newUser.username });
+                MOCK_TOKENS.set(refreshToken, { userId: newUser.id, username: newUser.username, type: 'refresh' });
+
+                sendJson(res, {
+                    success: true,
+                    message: "注册成功",
+                    data: {
+                        id: newUser.id,
+                        username: newUser.username,
+                        email: newUser.email,
+                        nickname: newUser.nickname,
+                        phone: newUser.phone,
+                        avatar: newUser.avatar,
+                        currentTheme: newUser.currentTheme,
+                        investmentGoal: newUser.investmentGoal,
+                        riskTolerance: newUser.riskTolerance,
+                        isActive: newUser.isActive,
+                        accessToken: accessToken,
+                        refreshToken: refreshToken,
+                        tokenType: "Bearer",
+                        expiresIn: expiresIn,
+                        createdAt: newUser.createdAt,
+                        lastLoginAt: newUser.lastLoginAt
+                    }
+                });
+            } catch (error) {
+                sendJson(res, {
+                    success: false,
+                    message: "请求数据格式错误"
+                }, 400);
+            }
+        });
+        return;
+    }
+
+    if (path === '/api/v1/auth/refresh' && method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk.toString());
+        req.on('end', () => {
+            try {
+                const { refreshToken } = JSON.parse(body);
+
+                // 验证刷新Token
+                const tokenData = validateMockToken(refreshToken);
+                if (!tokenData || tokenData.type !== 'refresh') {
+                    sendJson(res, {
+                        success: false,
+                        message: "无效的刷新Token"
+                    }, 401);
+                    return;
+                }
+
+                // 查找用户
+                const user = MOCK_USERS.find(u => u.id == tokenData.sub);
+                if (!user) {
+                    sendJson(res, {
+                        success: false,
+                        message: "用户不存在"
+                    }, 401);
+                    return;
+                }
+
+                // 生成新的Token
+                const newAccessToken = generateMockToken(user.id, user.username);
+                const newRefreshToken = generateRefreshToken(user.id, user.username);
+                const expiresIn = 7 * 24 * 60 * 60 * 1000; // 7天
+
+                // 存储新Token
+                MOCK_TOKENS.set(newAccessToken, { userId: user.id, username: user.username });
+                MOCK_TOKENS.set(newRefreshToken, { userId: user.id, username: user.username, type: 'refresh' });
+
+                sendJson(res, {
+                    success: true,
+                    message: "Token刷新成功",
+                    data: {
+                        accessToken: newAccessToken,
+                        refreshToken: newRefreshToken,
+                        tokenType: "Bearer",
+                        expiresIn: expiresIn
+                    }
+                });
+            } catch (error) {
+                sendJson(res, {
+                    success: false,
+                    message: "请求数据格式错误"
+                }, 400);
+            }
+        });
+        return;
+    }
+
+    if (path === '/api/v1/auth/verify' && method === 'GET') {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            sendJson(res, {
+                success: false,
+                message: "未提供认证Token"
+            }, 401);
+            return;
+        }
+
+        const token = authHeader.substring(7);
+        const tokenData = validateMockToken(token);
+
+        if (tokenData) {
+            const user = MOCK_USERS.find(u => u.id == tokenData.sub);
+            if (user) {
+                sendJson(res, {
+                    success: true,
+                    message: "Token验证成功",
+                    data: {
+                        id: user.id,
+                        username: user.username,
+                        email: user.email,
+                        nickname: user.nickname,
+                        currentTheme: user.currentTheme,
+                        isValid: true
+                    }
+                });
+            } else {
+                sendJson(res, {
+                    success: false,
+                    message: "用户不存在"
+                }, 401);
+            }
+        } else {
+            sendJson(res, {
+                success: false,
+                message: "无效的Token"
+            }, 401);
+        }
+        return;
+    }
+
+    if (path === '/api/v1/auth/logout' && method === 'POST') {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.substring(7);
+            MOCK_TOKENS.delete(token); // 清除Token
+        }
+
+        sendJson(res, {
+            success: true,
+            message: "登出成功",
+            data: null
+        });
+        return;
+    }
+
+    if (path === '/api/v1/auth/me' && method === 'GET') {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            sendJson(res, {
+                success: false,
+                message: "未提供认证Token"
+            }, 401);
+            return;
+        }
+
+        const token = authHeader.substring(7);
+        const tokenData = validateMockToken(token);
+
+        if (tokenData) {
+            const user = MOCK_USERS.find(u => u.id == tokenData.sub);
+            if (user) {
+                sendJson(res, {
+                    success: true,
+                    message: "获取用户信息成功",
+                    data: {
+                        id: user.id,
+                        username: user.username,
+                        email: user.email,
+                        nickname: user.nickname,
+                        phone: user.phone,
+                        avatar: user.avatar,
+                        currentTheme: user.currentTheme,
+                        investmentGoal: user.investmentGoal,
+                        riskTolerance: user.riskTolerance,
+                        role: user.role,
+                        isActive: user.isActive,
+                        createdAt: user.createdAt,
+                        lastLoginAt: user.lastLoginAt
+                    }
+                });
+            } else {
+                sendJson(res, {
+                    success: false,
+                    message: "用户不存在"
+                }, 401);
+            }
+        } else {
+            sendJson(res, {
+                success: false,
+                message: "无效的Token"
+            }, 401);
+        }
+        return;
+    }
+
+    // 基础路由处理
     if (path === '/' && method === 'GET') {
         sendJson(res, {
             message: "欢迎使用JNTM智能基金管家API",
@@ -256,7 +646,7 @@ const handleRoute = (req, res) => {
 // 创建服务器
 const server = http.createServer(handleRoute);
 
-const PORT = 8080;
+const PORT = 8888;
 const HOST = '0.0.0.0';
 
 server.listen(PORT, HOST, () => {

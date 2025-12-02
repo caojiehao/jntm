@@ -66,6 +66,12 @@ public class User {
     private String avatarUrl;
 
     /**
+     * 手机号
+     */
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    /**
      * 当前选择的主题
      */
     @Enumerated(EnumType.STRING)
@@ -103,6 +109,12 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private UserStatus status;
+
+    /**
+     * 用户角色
+     */
+    @Column(name = "role", nullable = false, length = 20)
+    private String role;
 
     /**
      * 是否启用邮件通知
@@ -211,5 +223,63 @@ public class User {
             return description;
         }
     }
+
+    // Getter和Setter方法
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    public String getNickname() { return nickname; }
+    public void setNickname(String nickname) { this.nickname = nickname; }
+
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public ThemeType getCurrentTheme() { return currentTheme; }
+    public void setCurrentTheme(ThemeType currentTheme) { this.currentTheme = currentTheme; }
+
+    public BigDecimal getInvestmentGoal() { return investmentGoal; }
+    public void setInvestmentGoal(BigDecimal investmentGoal) { this.investmentGoal = investmentGoal; }
+
+    public RiskTolerance getRiskTolerance() { return riskTolerance; }
+    public void setRiskTolerance(RiskTolerance riskTolerance) { this.riskTolerance = riskTolerance; }
+
+    public BigDecimal getExpectedReturnRate() { return expectedReturnRate; }
+    public void setExpectedReturnRate(BigDecimal expectedReturnRate) { this.expectedReturnRate = expectedReturnRate; }
+
+    public Integer getInvestmentHorizon() { return investmentHorizon; }
+    public void setInvestmentHorizon(Integer investmentHorizon) { this.investmentHorizon = investmentHorizon; }
+
+    public UserStatus getStatus() { return status; }
+    public void setStatus(UserStatus status) { this.status = status; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+    public Boolean getEmailNotificationEnabled() { return emailNotificationEnabled; }
+    public void setEmailNotificationEnabled(Boolean emailNotificationEnabled) { this.emailNotificationEnabled = emailNotificationEnabled; }
+
+    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+
+    public String getLastLoginIp() { return lastLoginIp; }
+    public void setLastLoginIp(String lastLoginIp) { this.lastLoginIp = lastLoginIp; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
 }

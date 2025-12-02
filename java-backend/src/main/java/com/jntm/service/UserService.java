@@ -82,7 +82,7 @@ public class UserService {
     }
 
     /**
-     * 创建新用户
+     * 创建新用户（用于注册）
      */
     @Transactional
     @CacheEvict(value = {"user", "userList"}, allEntries = true)
@@ -100,20 +100,21 @@ public class UserService {
         }
 
         // 创建用户实体
-        User user = User.builder()
-                .username(userDTO.getUsername())
-                .email(userDTO.getEmail())
-                .passwordHash(passwordEncoder.encode("defaultPassword123")) // 实际应用中应该使用用户提供的密码
-                .nickname(userDTO.getNickname() != null ? userDTO.getNickname() : userDTO.getUsername())
-                .avatarUrl(userDTO.getAvatarUrl())
-                .currentTheme(userDTO.getCurrentTheme() != null ? userDTO.getCurrentTheme() : User.ThemeType.FIRE)
-                .investmentGoal(userDTO.getInvestmentGoal())
-                .riskTolerance(userDTO.getRiskTolerance() != null ? userDTO.getRiskTolerance() : User.RiskTolerance.MODERATE)
-                .expectedReturnRate(userDTO.getExpectedReturnRate())
-                .investmentHorizon(userDTO.getInvestmentHorizon())
-                .status(User.UserStatus.ACTIVE)
-                .emailNotificationEnabled(userDTO.getEmailNotificationEnabled() != null ? userDTO.getEmailNotificationEnabled() : true)
-                .build();
+        User user = new User();
+        user.setUsername(userDTO.getUsername());
+        user.setEmail(userDTO.getEmail());
+        user.setPasswordHash(passwordEncoder.encode(userDTO.getPassword())); // 使用用户提供的密码
+        user.setNickname(userDTO.getNickname() != null ? userDTO.getNickname() : userDTO.getUsername());
+        user.setPhone(userDTO.getPhone());
+        user.setAvatarUrl(userDTO.getAvatarUrl());
+        user.setCurrentTheme(userDTO.getCurrentTheme() != null ? userDTO.getCurrentTheme() : User.ThemeType.FIRE);
+        user.setInvestmentGoal(userDTO.getInvestmentGoal());
+        user.setRiskTolerance(userDTO.getRiskTolerance() != null ? userDTO.getRiskTolerance() : User.RiskTolerance.MODERATE);
+        user.setExpectedReturnRate(userDTO.getExpectedReturnRate());
+        user.setInvestmentHorizon(userDTO.getInvestmentHorizon());
+        user.setStatus(User.UserStatus.ACTIVE);
+        user.setRole(userDTO.getRole() != null ? userDTO.getRole() : "USER");
+        user.setEmailNotificationEnabled(userDTO.getEmailNotificationEnabled() != null ? userDTO.getEmailNotificationEnabled() : true);
 
         // 保存用户
         User savedUser = userRepository.save(user);
@@ -248,11 +249,10 @@ public class UserService {
         List<Object[]> riskStats = userRepository.countUsersByRiskTolerance();
 
         // 构建统计数据
-        UserStatisticsDTO statistics = UserStatisticsDTO.builder()
-                .totalUsers(totalUsers)
-                .activeUsers(activeUsers)
-                .inactiveUsers(totalUsers - activeUsers)
-                .build();
+        UserStatisticsDTO statistics = new UserStatisticsDTO();
+        statistics.setTotalUsers(totalUsers);
+        statistics.setActiveUsers(activeUsers);
+        statistics.setInactiveUsers(totalUsers - activeUsers);
 
         // TODO: 处理主题和风险统计数据的转换
 
@@ -289,14 +289,65 @@ public class UserService {
     }
 
     /**
+     * 检查用户名是否存在
+     */
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    /**
+     * 检查邮箱是否存在
+     */
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * 根据用户名查找用户实体
+     */
+    public User findByUsernameEntity(String username) {
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        return userOpt.orElse(null);
+    }
+
+    /**
+     * 更新用户最后登录时间
+     */
+    @Transactional
+    public void updateLastLoginTime(Long userId) {
+        log.debug("更新用户最后登录时间: userId={}", userId);
+
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setLastLoginAt(LocalDateTime.now());
+            userRepository.save(user);
+        }
+    }
+
+    /**
+     * 将用户实体转换为DTO
+     */
+    public UserDTO convertToDTO(User user) {
+        return UserDTO.fromEntity(user);
+    }
+
+    /**
      * 用户统计信息DTO
      */
-    @lombok.Data
-    @lombok.Builder
     public static class UserStatisticsDTO {
         private Long totalUsers;
         private Long activeUsers;
         private Long inactiveUsers;
+
+        public Long getTotalUsers() { return totalUsers; }
+        public void setTotalUsers(Long totalUsers) { this.totalUsers = totalUsers; }
+
+        public Long getActiveUsers() { return activeUsers; }
+        public void setActiveUsers(Long activeUsers) { this.activeUsers = activeUsers; }
+
+        public Long getInactiveUsers() { return inactiveUsers; }
+        public void setInactiveUsers(Long inactiveUsers) { this.inactiveUsers = inactiveUsers; }
         // 可以添加更多统计字段
     }
 

@@ -1,0 +1,218 @@
+version: '3.8'
+
+services:
+  # MySQL数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: jntm-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: jntm
+      MYSQL_USER: jntm_user
+      MYSQL_PASSWORD: 123456
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./database/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql:ro
+    networks:
+      - jntm-network
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Redis缓存服务
+  redis:
+    image: redis:7-alpine
+    container_name: jntm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - jntm-network
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Java主服务
+  java-backend:
+    build:
+      context: ./java-backend
+      dockerfile: Dockerfile
+    container_name: jntm-java-backend
+    restart: unless-stopped
+    ports:
+      - "5080:5080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=jntm
+      - DB_USERNAME=jntm_user
+      - DB_PASSWORD=123456
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=JNTM-Super-Secret-Key-For-JWT-Token-Generation-In-Production
+      - JWT_EXPIRATION=604800000
+      - JWT_REFRESH_EXPIRATION=2592000000
+      - PYTHON_AI_SERVICE_URL=http://python-service:5081
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-your-deepseek-key}
+      - QWEN_API_KEY=${QWEN_API_KEY:-your-qwen-key}
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID:-your-tencent-id}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY:-your-tencent-key}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - jntm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5080/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Python AI服务
+  python-service:
+    build:
+      context: ./python-service
+      dockerfile: Dockerfile
+    container_name: jntm-python-service
+    restart: unless-stopped
+    ports:
+      - "5081:5081"
+    environment:
+      - DEBUG=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JAVA_SERVICE_BASE_URL=http://java-backend:5080/api/v1
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-your-deepseek-key}
+      - QWEN_API_KEY=${QWEN_API_KEY:-your-qwen-key}
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID:-your-tencent-id}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY:-your-tencent-key}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - java-backend
+      - redis
+    networks:
+      - jntm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Mock API服务（开发环境）
+  mock-api:
+    image: node:18-alpine
+    container_name: jntm-mock-api
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    working_dir: /app
+    volumes:
+      - ./mock_server.js:/app/mock_server.js:ro
+      - ./package.json:/app/package.json:ro
+    command: sh -c "npm install -g && node mock_server.js"
+    networks:
+      - jntm-network
+    environment:
+      - NODE_ENV=development
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8888/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 前端开发服务
+  frontend:
+    image: node:18-alpine
+    container_name: jntm-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    working_dir: /app/frontend
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8888/api/v1
+      - VITE_APP_TITLE=基你太美 - 智能基金管家
+      - VITE_ENABLE_AI=true
+      - VITE_ENABLE_OCR=true
+      - VITE_ENABLE_THEMES=true
+      - VITE_DEFAULT_THEME=fire
+      - VITE_DEV_MOCK_DATA=false
+      - VITE_DEV_SHOW_DEBUG=true
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - java-backend
+      - mock-api
+    networks:
+      - jntm-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Nginx反向代理（生产环境）
+  nginx:
+    image: nginx:alpine
+    container_name: jntm-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx-with-auth.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./uploads:/var/www/uploads:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - java-backend
+      - python-service
+    networks:
+      - jntm-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# 数据卷
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# 网络
+networks:
+  jntm-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

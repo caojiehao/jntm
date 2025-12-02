@@ -98,13 +98,22 @@ jntm/
 
 1. **克隆项目**
 ```bash
-git clone https://github.com/your-username/jntm.git
+git clone https://github.com/caojiehao/jntm.git
 cd jntm
 ```
 
-2. **一键启动开发环境**
+2. **启动认证系统（推荐）**
 ```bash
-# 使用Docker Compose启动所有服务
+# 一键启动包含完整用户认证的Docker环境
+./start-auth-services.sh
+
+# 查看服务状态
+docker-compose -f docker-compose-with-auth.yml ps
+```
+
+3. **传统开发方式**
+```bash
+# 使用Docker Compose启动基础服务
 npm run docker:dev
 
 # 或者分别启动各服务
@@ -114,10 +123,19 @@ cd ../python-service && uvicorn app.main:app --reload  # 启动Python AI服务
 npm run dev:frontend             # 启动前端
 ```
 
-3. **访问应用**
-- 前端应用：http://localhost:5173
-- Java后端API：http://localhost:8080
-- Python AI服务：http://localhost:8000
+4. **访问应用**
+- **认证系统前端**：http://localhost:5173
+- **Mock API服务**：http://localhost:8888
+- **Java后端API**：http://localhost:5080
+- **Python AI服务**：http://localhost:5081
+- **Nginx代理**：http://localhost:8080
+
+5. **测试账号**
+- 管理员：admin / password123
+- 测试用户：testuser / password123
+- FIRE用户：fire_investor / password123
+- 全球用户：global_investor / password123
+- 保值用户：inflation_investor / password123
 
 ### 生产环境部署
 
@@ -178,6 +196,14 @@ docker-compose ps
 3. 提交你的修改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 打开一个 Pull Request
+
+## 📚 文档
+
+- [项目架构设计](docs/architecture/system-design.md)
+- [主题模块说明](docs/architecture/theme-modules.md)
+- [数据库设计](docs/architecture/database-design.md)
+- [API接口文档](docs/api/api-overview.md)
+- [Docker认证系统部署指南](DOCKER-AUTH-README.md)
 
 ## 许可证
 
