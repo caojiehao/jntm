@@ -29,15 +29,17 @@
 ### 技术栈
 
 **前端技术栈**：Vue 3.4+ Composition API、Vite 5+、Element Plus、ECharts 5+、Pinia、TypeScript
-**后端技术栈**：Node.js 18+、Express.js 4.x、SQLite3/MySQL、Redis、JWT
-**外部服务**：DeepSeek AI API、Qwen AI API、腾讯云OCR、基金数据API
+**后端技术栈**：Java 17+、Spring Boot 3.x、MySQL 8.0、Redis、JWT
+**AI服务**：Python 3.11+、FastAPI、DeepSeek AI API、Qwen AI API
+**外部服务**：腾讯云OCR、基金数据API
 
 ## 项目结构
 
 ```
 jntm/
 ├── frontend/          # Vue 3应用，基于主题的组件
-├── backend/           # Express.js API，包含主题管理服务
+├── java-backend/      # Spring Boot API服务，包含主题管理服务
+├── python-service/    # FastAPI AI服务
 ├── docs/              # 完整的技术文档
 └── scripts/           # 部署脚本
 ```
@@ -50,7 +52,7 @@ jntm/
    - 主题特定API响应
 
 2. **模块化服务架构**：
-   - 每个主题都有专门的服务模块，位于 `backend/src/services/`
+   - 每个主题都有专门的服务模块，位于 `java-backend/src/main/java/com/jntm/service/`
    - 跨主题共享的通用服务
    - 主题特定计算的插件式工具系统
 
@@ -63,58 +65,57 @@ jntm/
 
 ### 环境搭建
 ```bash
-npm run setup                    # 安装前后端所有依赖
-cp backend/.env.example backend/.env  # 复制并配置环境变量
+npm run setup                    # 安装前端依赖
+cd java-backend && ./mvnw clean install  # 构建Java后端
+cd ../python-service && pip install -r requirements.txt  # 安装Python依赖
 ```
 
 ### 开发调试
 ```bash
-npm run dev                       # 同时启动前后端开发模式
-npm run dev:frontend              # 仅启动前端 (Vite开发服务器，端口：5173)
-npm run dev:backend               # 仅启动后端 (Express服务器，端口：3000)
+npm run dev:frontend              # 启动前端 (Vite开发服务器，端口：5173)
+npm run docker:dev                # 启动后端服务 (Java + Python)
 ```
 
 ### 构建打包
 ```bash
-npm run build                     # 构建前后端生产版本
-npm run build:frontend            # 仅构建前端
-npm run build:backend             # 仅构建后端
+npm run build:frontend            # 构建前端
+npm run docker:build             # 构建后端Docker镜像
 ```
 
 ### 测试验证
 ```bash
-npm run test                       # 运行前后端所有测试
-npm run test:frontend             # 仅运行前端测试
-npm run test:backend              # 仅运行后端测试
+npm run test:frontend             # 运行前端测试
 ```
 
 ### 代码质量
 ```bash
-npm run lint                       # 代码检查前后端
-npm run lint:frontend             # 仅检查前端代码
-npm run lint:backend              # 仅检查后端代码
-```
-
-### 部署上线
-```bash
-npm run deploy                     # 构建并部署后端（云函数部署）
+npm run lint:frontend             # 检查前端代码
 ```
 
 ## 开发环境配置
 
-### 必需环境变量 (backend/.env)
+### Java后端环境 (java-backend/.env)
 ```env
 # 数据库配置
-DB_PATH=./database/jntm.db
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=jntm
+DB_USERNAME=root
+DB_PASSWORD=root
+
+# Redis配置
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
+# 身份认证
+JWT_SECRET=your-super-secret-jwt-key
+```
+
+### Python AI服务环境 (python-service/.env)
+```env
 # AI API配置
 DEEPSEEK_API_KEY=your_deepseek_api_key
 QWEN_API_KEY=your_qwen_api_key
-
-# 身份认证
-JWT_SECRET=your-super-secret-jwt-key
 
 # OCR服务
 TENCENT_SECRET_ID=your_tencent_secret_id
@@ -123,7 +124,8 @@ TENCENT_SECRET_KEY=your_tencent_secret_key
 
 ### 前端环境 (frontend/.env.local)
 ```env
-VITE_API_BASE_URL=http://localhost:3000/api/v1
+VITE_API_BASE_URL=http://localhost:8080/api/v1
+VITE_AI_SERVICE_URL=http://localhost:8000/api/v1
 VITE_APP_TITLE=基你太美 - 智能基金管家
 VITE_ENABLE_AI=true
 VITE_ENABLE_OCR=true
@@ -133,13 +135,14 @@ VITE_ENABLE_OCR=true
 
 ### 添加新主题功能
 
-1. **后端主题分析器**：扩展 `backend/src/services/theme.service.js`
-   ```javascript
-   class NewThemeAnalyzer extends BaseThemeAnalyzer {
-     async analyze(portfolios) {
-       const basicMetrics = this.calculateBasicMetrics(portfolios)
+1. **后端主题分析器**：扩展 `java-backend/src/main/java/com/jntm/service/`
+   ```java
+   @Service
+   public class NewThemeAnalyzer extends BaseThemeAnalyzer {
+     public ThemeAnalysisResult analyze(List<Portfolio> portfolios) {
+       ThemeAnalysisResult basicMetrics = calculateBasicMetrics(portfolios);
        // 添加主题特定分析逻辑
-       return { ...basicMetrics, themeSpecific: customMetrics }
+       return basicMetrics.withThemeSpecific(customMetrics);
      }
    }
    ```
@@ -206,10 +209,10 @@ VITE_ENABLE_OCR=true
 
 ## 部署说明
 
-项目采用**渐进式部署**策略：
-1. **开发阶段**：本地开发使用SQLite
-2. **测试阶段**：云服务器使用MySQL
-3. **生产阶段**：云函数（腾讯云）+托管数据库
+项目采用**容器化部署**策略：
+1. **开发阶段**：Docker Compose本地开发环境
+2. **测试阶段**：云服务器Docker部署
+3. **生产阶段**：Kubernetes集群部署
 
 主题化架构支持**按主题的增量功能发布**，实现更安全的生产部署和新功能的A/B测试。
 

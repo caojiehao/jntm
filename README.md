@@ -4,7 +4,7 @@
 
 ![基你太美](https://img.shields.io/badge/基你太美-智能基金管家-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Node.js](https://img.shields.io/badge/node.js-18+-green)
+![Java](https://img.shields.io/badge/java-17+-orange)
 ![Vue.js](https://img.shields.io/badge/vue.js-3.4+-brightgreen)
 ![TypeScript](https://img.shields.io/badge/typescript-5.3+-blue)
 
@@ -31,14 +31,14 @@
 ## 🛠️ 技术栈
 
 ### 后端技术栈
-- **运行环境**：Node.js 18+
-- **Web框架**：Express.js 4.x
-- **数据库**：SQLite3/MySQL + Redis
-- **认证**：JWT + bcryptjs
-- **AI服务**：DeepSeek AI + 通义千问
+- **运行环境**：Java 17+
+- **Web框架**：Spring Boot 3.x
+- **数据库**：MySQL 8.0 + Redis
+- **认证**：JWT + Spring Security
+- **AI服务**：Python FastAPI + DeepSeek AI + 通义千问
 - **OCR服务**：腾讯云OCR
-- **数据验证**：Joi
-- **文件处理**：Multer
+- **数据验证**：Spring Validation
+- **构建工具**：Maven
 
 ### 前端技术栈
 - **框架**：Vue 3.4+ Composition API
@@ -55,20 +55,15 @@
 
 ```
 jntm/
-├── backend/                 # 后端服务
-│   ├── src/
-│   │   ├── app.js         # 应用入口
-│   │   ├── config/        # 配置文件
-│   │   ├── controllers/   # 控制器
-│   │   ├── services/      # 业务服务
-│   │   ├── models/        # 数据模型
-│   │   ├── middleware/    # 中间件
-│   │   ├── routes/        # 路由定义
-│   │   ├── utils/         # 工具函数
-│   │   └── scripts/       # 脚本文件
-│   ├── database/          # 数据库文件
-│   ├── uploads/           # 上传文件
-│   └── logs/              # 日志文件
+├── java-backend/           # Java后端服务
+│   ├── src/main/java/      # Java源码
+│   ├── src/main/resources/ # 配置文件
+│   ├── src/test/java/      # 测试代码
+│   └── pom.xml             # Maven配置
+├── python-service/         # Python AI服务
+│   ├── app/                # 应用代码
+│   ├── requirements.txt    # Python依赖
+│   └── Dockerfile          # Docker配置
 ├── frontend/               # 前端应用
 │   ├── src/
 │   │   ├── main.ts        # 应用入口
@@ -92,8 +87,11 @@ jntm/
 
 ### 环境要求
 
-- Node.js 18+
-- npm 8+ 或 yarn 1.22+
+- Java 17+
+- Maven 3.8+
+- Python 3.11+
+- Node.js 18+ (仅前端)
+- Docker & Docker Compose
 - Git
 
 ### 开发环境启动
@@ -106,18 +104,20 @@ cd jntm
 
 2. **一键启动开发环境**
 ```bash
-# 使用我们提供的开发脚本
-./scripts/dev.sh
+# 使用Docker Compose启动所有服务
+npm run docker:dev
 
-# 或者手动启动
-npm run setup
-npm run dev
+# 或者分别启动各服务
+npm run setup                    # 安装前端依赖
+cd java-backend && ./mvnw spring-boot:run  # 启动Java后端
+cd ../python-service && uvicorn app.main:app --reload  # 启动Python AI服务
+npm run dev:frontend             # 启动前端
 ```
 
 3. **访问应用**
 - 前端应用：http://localhost:5173
-- 后端API：http://localhost:3000
-- 健康检查：http://localhost:3000/health
+- Java后端API：http://localhost:8080
+- Python AI服务：http://localhost:8000
 
 ### 生产环境部署
 
