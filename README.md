@@ -185,8 +185,8 @@ docker-compose ps
 
 ## 联系我们
 
-- 项目地址：https://github.com/your-username/jntm
-- 问题反馈：https://github.com/your-username/jntm/issues
+- 项目地址：https://github.com/caojiehao/jntm
+- 问题反馈：https://github.com/caojiehao/jntm/issues
 
 ---
 
